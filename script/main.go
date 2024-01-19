@@ -62,7 +62,7 @@ func main() {
 			continue
 		}
 
-		wsDestroy, _ := config.GetWorkspaceDetails(workspace.ID)
+		wsDestroy, _ := config.GetWorkspaceAutoDestroyDetails(workspace.ID)
 
 		// If we have a duration set, we're compliant.
 		if wsDestroy.Data.Attributes.AutoDestroyActivityDuration != "" {
@@ -131,7 +131,7 @@ type WorkspaceAutoDestroy struct {
 	} `json:"data"`
 }
 
-func (c *Config) GetWorkspaceDetails(workspaceID string) (*WorkspaceAutoDestroy, error) {
+func (c *Config) GetWorkspaceAutoDestroyDetails(workspaceID string) (*WorkspaceAutoDestroy, error) {
 	req, err := http.NewRequest("GET", "https://app.terraform.io/api/v2/workspaces/"+workspaceID, nil)
 	if err != nil {
 		return nil, err
