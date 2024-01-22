@@ -53,7 +53,9 @@ func (c *Config) CheckWorkspace(workspace *tfe.Workspace) (bool, error) {
 		// not sure I want to add a dependency on one of them yet.
 		//
 		// The mere existence of an activity duration is enough to be
-		// compliant for now
+		// compliant for now.
+		// Once this is included in the go-tfe library, I would expect that
+		// parsing to be done at that point
 
 		log.WithFields(log.Fields{
 			"project-id":     workspace.Project.ID,
