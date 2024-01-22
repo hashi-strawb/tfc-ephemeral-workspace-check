@@ -12,7 +12,7 @@ You also need a TFE_TOKEN environment variable set.
 The easiest way to run this is with HCP Vault Secrets:
 
 ```
-vlt run -c "go run main.go"
+vlt run -c "go run ."
 ```
 (you first need to configure)
 

@@ -6,50 +6,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 
-	"github.com/hashicorp/go-tfe"
-	"github.com/hashicorp/hcl/v2/hclsimple"
 	log "github.com/sirupsen/logrus"
 )
 
-type Config struct {
-	TFEToken          string
-	TFEOrg            string   `hcl:"tfe_org"`
-	IgnoredWorkspaces []string `hcl:"ignored_workspaces"`
-	IgnoredProjects   []string `hcl:"ignored_projects"`
-
-	// TODO: Default TTL
-	// TODO: Compliance TTL
-}
-
-func mustGetEnvVar(varName string) string {
-	value := os.Getenv(varName)
-	if value == "" {
-		log.Fatalf("%s not set. Set it, or run:\n\tvlt run -c \"go run main.go\"", varName)
-	}
-	return value
-}
-
 func main() {
-	var config Config
-	config.TFEToken = mustGetEnvVar("TFE_TOKEN")
-	err := hclsimple.DecodeFile("config.hcl", nil, &config)
-	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
-	}
-	if config.TFEOrg == "" {
-		log.Fatalf("tfe_org not set in config.hcl")
-	}
-
-	client, err := tfe.NewClient(&tfe.Config{
-		Token:             config.TFEToken,
-		RetryServerErrors: true,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	ctx := context.Background()
 
 	workspaces, err := client.Workspaces.List(ctx, config.TFEOrg, nil)
