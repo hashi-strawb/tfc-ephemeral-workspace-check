@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -19,7 +20,23 @@ func main() {
 	}
 
 	for _, workspace := range workspaces.Items {
-		if contains(config.IgnoredWorkspaces, workspace.ID) || contains(config.IgnoredProjects, workspace.Project.ID) {
+		if contains(config.IgnoredProjects, workspace.Project.ID) {
+			log.WithFields(log.Fields{
+				"project-id":     workspace.Project.ID,
+				"workspace-id":   workspace.ID,
+				"workspace-name": workspace.Name,
+			}).Debugf("Skipped (project is ignored)")
+
+			continue
+		}
+
+		if contains(config.IgnoredWorkspaces, workspace.ID) {
+			log.WithFields(log.Fields{
+				"project-id":     workspace.Project.ID,
+				"workspace-id":   workspace.ID,
+				"workspace-name": workspace.Name,
+			}).Debugf("Skipped (workspace is ignored)")
+
 			continue
 		}
 
@@ -27,6 +44,22 @@ func main() {
 
 		// If we have a duration set, we're compliant.
 		if wsDestroy.Data.Attributes.AutoDestroyActivityDuration != "" {
+
+			// TODO: Check that the duration is sufficiently short
+			//
+			// This would work...
+			// duration, err := time.ParseDuration(wsDestroy.Data.Attributes.AutoDestroyActivityDuration)
+			//
+			// if not for the fact that Go's time package deliberately does not
+			// understand durations like "1d" (due to edge-cases in how long a
+			// day could be)
+			//
+			// There are community packages that do understand this, but I'm
+			// not sure I want to add a dependency on one of them yet.
+			//
+			// The mere existence of an activity duration is enough to be
+			// compliant for now
+
 			log.WithFields(log.Fields{
 				"project-id":     workspace.Project.ID,
 				"workspace-id":   workspace.ID,
@@ -42,7 +75,31 @@ func main() {
 
 		// if not... if we have a fixed time
 		if wsDestroy.Data.Attributes.AutoDestroyAt != "" {
-			// TODO: we should check that the date is sufficiently soon
+			// Parse the fixed time
+			autoDestroyTime, err := time.Parse(time.RFC3339, wsDestroy.Data.Attributes.AutoDestroyAt)
+			if err != nil {
+				log.WithFields(log.Fields{
+					"project-id":     workspace.Project.ID,
+					"workspace-id":   workspace.ID,
+					"workspace-name": workspace.Name,
+				}).Errorf("Failed to parse auto-destroy time: %v", err)
+				continue
+			}
+
+			// Now check that the fixed time is <= the max TTL
+			if autoDestroyTime.After(time.Now().Add(config.maxTTLDuration)) {
+				log.WithFields(log.Fields{
+					"project-id":     workspace.Project.ID,
+					"workspace-id":   workspace.ID,
+					"workspace-name": workspace.Name,
+
+					"auto-destroy-activity-duration": wsDestroy.Data.Attributes.AutoDestroyActivityDuration,
+					"auto-destroy-at":                wsDestroy.Data.Attributes.AutoDestroyAt,
+					"auto-destroy-status":            wsDestroy.Data.Attributes.AutoDestroyStatus,
+				}).Warnf("Non-compliant (auto-destroy time > max TTL)")
+
+				continue
+			}
 
 			log.WithFields(log.Fields{
 				"project-id":     workspace.Project.ID,
@@ -52,7 +109,7 @@ func main() {
 				"auto-destroy-activity-duration": wsDestroy.Data.Attributes.AutoDestroyActivityDuration,
 				"auto-destroy-at":                wsDestroy.Data.Attributes.AutoDestroyAt,
 				"auto-destroy-status":            wsDestroy.Data.Attributes.AutoDestroyStatus,
-			}).Infof("Compliant! (fixed time set)")
+			}).Infof("Compliant! (auto-destroy time <= max TTL)")
 
 			continue
 		}
