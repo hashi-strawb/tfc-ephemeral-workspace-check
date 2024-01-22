@@ -14,7 +14,18 @@ The easiest way to run this is with HCP Vault Secrets:
 ```
 vlt run -c "go run ."
 ```
-(you first need to configure)
+
+(you first need to configure HCP Vault secrets, as below)
+
+You should get an output similar to this:
+
+```
+$ vlt run -c "go run ."
+INFO[0001] Compliant! (activity duration set)            auto-destroy-activity-duration=1d auto-destroy-at= auto-destroy-status= project-id=prj-UpKoCoERU4EmkoGV workspace-id=ws-1EA9MzkuuUn5b7UJ workspace-name=test-ws-ephemeral-inactive
+WARN[0001] Non-compliant (auto-destroy not set)          auto-destroy-activity-duration= auto-destroy-at= auto-destroy-status= project-id=prj-UpKoCoERU4EmkoGV workspace-id=ws-fTiAgLDe2jmNyUPA workspace-name=nocode-test
+WARN[0001] Non-compliant (auto-destroy not set)          auto-destroy-activity-duration= auto-destroy-at= auto-destroy-status= project-id=prj-UpKoCoERU4EmkoGV workspace-id=ws-ViGbWb4YTPpaEcrS workspace-name=test-ws-persistant
+INFO[0002] Compliant! (fixed time set)                   auto-destroy-activity-duration= auto-destroy-at="2100-01-01T00:00:00.000Z" auto-destroy-status= project-id=prj-UpKoCoERU4EmkoGV workspace-id=ws-Zt6RJ7PxUsPScJhN workspace-name=test-ws-ephemeral-static
+```
 
 ### TODO
 
