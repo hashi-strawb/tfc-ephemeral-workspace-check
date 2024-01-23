@@ -24,6 +24,11 @@ type Config struct {
 	defaultTTLDuration time.Duration
 	MaxTTL             string `hcl:"max_ttl"`
 	maxTTLDuration     time.Duration
+
+	// TODO: DefaultTTL behaviour:
+	//    * Creation Date + DefaultTTL
+	//    * Now + DefaultTTL
+	//    * DefaultTTL Inactivity
 }
 
 func mustGetEnvVar(varName string) string {
@@ -35,6 +40,8 @@ func mustGetEnvVar(varName string) string {
 }
 
 func init() {
+	// TODO: flag to specify config file
+
 	// TODO: optional config for this
 	// log.SetFormatter(&log.JSONFormatter{})
 	// log.SetLevel(log.DebugLevel)
@@ -61,6 +68,9 @@ func init() {
 	}
 
 	// TOOD: check defaultTTL <= maxTTL
+
+	// TODO: if using inactivity TTL behaviour, check defaultTTL is an integer
+	// number of hours or days; if not, round up to nearest hour/day
 
 	client, err = tfe.NewClient(&tfe.Config{
 		Token:             config.TFEToken,
