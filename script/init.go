@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -20,15 +21,11 @@ type Config struct {
 	IgnoredWorkspaces []string `hcl:"ignored_workspaces"`
 	IgnoredProjects   []string `hcl:"ignored_projects"`
 
-	DefaultTTL         string `hcl:"default_ttl"`
-	defaultTTLDuration time.Duration
-	MaxTTL             string `hcl:"max_ttl"`
-	maxTTLDuration     time.Duration
-
-	// TODO: DefaultTTL behaviour:
-	//    * Creation Date + DefaultTTL
-	//    * Now + DefaultTTL
-	//    * DefaultTTL Inactivity
+	DefaultTTL            string `hcl:"default_ttl"`
+	defaultTTLDuration    time.Duration
+	defaultTTLHoursOrDays string
+	MaxTTL                string `hcl:"max_ttl"`
+	maxTTLDuration        time.Duration
 }
 
 func mustGetEnvVar(varName string) string {
@@ -41,6 +38,9 @@ func mustGetEnvVar(varName string) string {
 
 func init() {
 	// TODO: flag to specify config file
+
+	// TODO: flag to specify debug level
+	// log.SetLevel(log.DebugLevel)
 
 	// TODO: optional config for this
 	// log.SetFormatter(&log.JSONFormatter{})
@@ -69,8 +69,8 @@ func init() {
 
 	// TOOD: check defaultTTL <= maxTTL
 
-	// TODO: if using inactivity TTL behaviour, check defaultTTL is an integer
-	// number of hours or days; if not, round up to nearest hour/day
+	config.defaultTTLHoursOrDays = roundDurationToHoursOrDays(config.defaultTTLDuration)
+	log.Debugf("Using default TTL: %s, or %s for the TFC API", config.defaultTTLDuration, config.defaultTTLHoursOrDays)
 
 	client, err = tfe.NewClient(&tfe.Config{
 		Token:             config.TFEToken,
@@ -79,4 +79,16 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+// round the duration down to the nearest number of hours, and return suffixed with "h"
+// if a multiple of 24, return the number of days instead, suffixed with "d"
+func roundDurationToHoursOrDays(d time.Duration) string {
+	hours := int(d.Round(time.Hour).Hours())
+
+	if hours%24 == 0 {
+		return fmt.Sprintf("%vd", hours/24)
+	}
+
+	return fmt.Sprintf("%vh", hours)
 }

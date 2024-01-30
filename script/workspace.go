@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -35,7 +36,16 @@ func (c *Config) CheckWorkspace(workspace *tfe.Workspace) (bool, error) {
 		return true, nil
 	}
 
-	wsDestroy, _ := config.GetWorkspaceAutoDestroyDetails(workspace.ID)
+	wsDestroy, err := config.GetWorkspaceAutoDestroyDetails(workspace.ID)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"project-id":     workspace.Project.ID,
+			"workspace-id":   workspace.ID,
+			"workspace-name": workspace.Name,
+		}).Errorf("Failed to parse auto-destroy time: %v", err)
+
+		return false, fmt.Errorf("failed get workspace auto-destroy details: %v", err)
+	}
 
 	// If we have a duration set, we're compliant.
 	if wsDestroy.Data.Attributes.AutoDestroyActivityDuration != "" {
@@ -137,14 +147,16 @@ func contains(slice []string, item string) bool {
 // Specific fields we care about from the API response, which are not present
 // yet in go-tfe's Workspace struct.
 type WorkspaceAutoDestroy struct {
-	Data struct {
-		ID         string `json:"id"`
-		Attributes struct {
-			AutoDestroyActivityDuration string `json:"auto-destroy-activity-duration"`
-			AutoDestroyAt               string `json:"auto-destroy-at"`
-			AutoDestroyStatus           string `json:"auto-destroy-status"`
-		} `json:"attributes"`
-	} `json:"data"`
+	Data WorkspaceAutoDestroyData `json:"data"`
+}
+type WorkspaceAutoDestroyData struct {
+	ID         string                             `json:"id,omitempty"`
+	Attributes WorkspaceAutoDestroyDataAttributes `json:"attributes"`
+}
+type WorkspaceAutoDestroyDataAttributes struct {
+	AutoDestroyActivityDuration string `json:"auto-destroy-activity-duration,omitempty"`
+	AutoDestroyAt               string `json:"auto-destroy-at,omitempty"`
+	AutoDestroyStatus           string `json:"auto-destroy-status,omitempty"`
 }
 
 func (c *Config) GetWorkspaceAutoDestroyDetails(workspaceID string) (*WorkspaceAutoDestroy, error) {
@@ -162,13 +174,14 @@ func (c *Config) GetWorkspaceAutoDestroyDetails(workspaceID string) (*WorkspaceA
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
-
 	body, err := io.ReadAll(io.Reader(resp.Body))
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Errorf("Error from TFC: %s", body)
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
 	var payload WorkspaceAutoDestroy
@@ -177,4 +190,93 @@ func (c *Config) GetWorkspaceAutoDestroyDetails(workspaceID string) (*WorkspaceA
 		return nil, err
 	}
 	return &payload, nil
+}
+
+func (c *Config) UpdateWorkspaceTTL(workspace *tfe.Workspace) error {
+	err := c.SetWorkspaceAutoDestroyDetails(workspace.ID)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"project-id":     workspace.Project.ID,
+			"workspace-id":   workspace.ID,
+			"workspace-name": workspace.Name,
+
+			"auto-destroy-activity-duration": config.defaultTTLHoursOrDays,
+		}).Errorf("Failed to update workspace TTL: %v", err)
+		return err
+	}
+
+	log.WithFields(log.Fields{
+		"project-id":     workspace.Project.ID,
+		"workspace-id":   workspace.ID,
+		"workspace-name": workspace.Name,
+
+		"auto-destroy-activity-duration": config.defaultTTLHoursOrDays,
+	}).Infof("Updated workspace TTL")
+
+	return nil
+}
+
+/*
+
+// This is the curl equivalent
+// https://app.terraform.io/app/hashi_strawb_testing/workspaces/test-ws-ephemeral-static-far-future
+// which is currently set to Destroy At Specific Time, in the far future
+
+curl \
+  --header "Authorization: Bearer $TOKEN" \
+  --header "Content-Type: application/vnd.api+json" \
+  --request PATCH \
+  --data @payload.json \
+  https://app.terraform.io/api/v2/workspaces/ws-Zt6RJ7PxUsPScJhN
+
+// with payload.json
+{
+  "data": {
+    "attributes": {
+      "auto-destroy-activity-duration": "3d"
+    }
+  }
+}
+
+// and that DOES work
+*/
+
+func (c *Config) SetWorkspaceAutoDestroyDetails(workspaceID string) error {
+	autoDestroyConfig := WorkspaceAutoDestroy{
+		Data: WorkspaceAutoDestroyData{
+			Attributes: WorkspaceAutoDestroyDataAttributes{
+				AutoDestroyActivityDuration: config.defaultTTLHoursOrDays,
+			},
+		},
+	}
+	jsonData, _ := json.Marshal(autoDestroyConfig)
+
+	req, err := http.NewRequest("PATCH", "https://app.terraform.io/api/v2/workspaces/"+workspaceID, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.TFEToken)
+	req.Header.Set("Content-Type", "application/vnd.api+json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(io.Reader(resp.Body))
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		log.Errorf("Error from TFC: %s", body)
+
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	// don't bother parsing the body; assume it's fine
+
+	return nil
 }

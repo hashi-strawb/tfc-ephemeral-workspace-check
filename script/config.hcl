@@ -12,5 +12,5 @@ ignored_projects = [
   "prj-gpiFDBZUvLnYaqJX", # Azure Dynamic Creds
 ]
 
-default_ttl = "24h"
+default_ttl = "72h"  # 3 days
 max_ttl     = "168h" # 7 days
