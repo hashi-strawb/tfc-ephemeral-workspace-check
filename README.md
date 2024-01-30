@@ -29,8 +29,8 @@ INFO[0002] Compliant! (fixed time set)                   auto-destroy-activity-d
 
 ### TODO
 
-* [ ] Set a compliance TTL (workspace must auto-destroy after X duration)
-* [ ] Automatically set a default TTL on non-compliant workspaces
+* [X] Set a compliance TTL (workspace must auto-destroy after X duration)
+* [X] Automatically set a default TTL on non-compliant workspaces
     * [ ] Optionally skip this with a `--dry-run` argument
 * [ ] A whole bunch of refactoring would be nice
 

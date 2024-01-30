@@ -216,31 +216,6 @@ func (c *Config) UpdateWorkspaceTTL(workspace *tfe.Workspace) error {
 	return nil
 }
 
-/*
-
-// This is the curl equivalent
-// https://app.terraform.io/app/hashi_strawb_testing/workspaces/test-ws-ephemeral-static-far-future
-// which is currently set to Destroy At Specific Time, in the far future
-
-curl \
-  --header "Authorization: Bearer $TOKEN" \
-  --header "Content-Type: application/vnd.api+json" \
-  --request PATCH \
-  --data @payload.json \
-  https://app.terraform.io/api/v2/workspaces/ws-Zt6RJ7PxUsPScJhN
-
-// with payload.json
-{
-  "data": {
-    "attributes": {
-      "auto-destroy-activity-duration": "3d"
-    }
-  }
-}
-
-// and that DOES work
-*/
-
 func (c *Config) SetWorkspaceAutoDestroyDetails(workspaceID string) error {
 	autoDestroyConfig := WorkspaceAutoDestroy{
 		Data: WorkspaceAutoDestroyData{
