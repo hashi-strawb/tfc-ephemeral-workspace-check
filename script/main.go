@@ -25,12 +25,16 @@ func main() {
 		}
 
 		if !compliant {
-			hadNonCompliant = true
+
+			// TODO: if dryrun, set hadNonCompliant and continue
 
 			// Now fix the non-compliant workspace
 			err = config.UpdateWorkspaceTTL(workspace)
 			if err != nil {
 				hadErrors = true
+
+				// Only set hadNonCompliant if we had workspaces we were unable to update
+				hadNonCompliant = true
 			}
 		}
 	}
