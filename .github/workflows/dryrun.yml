@@ -1,0 +1,25 @@
+name: DryRun
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0/12 * * *'
+  push:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+
+    - name: Run
+      run:
+        cd ./script
+        go run . --config config.hcl
