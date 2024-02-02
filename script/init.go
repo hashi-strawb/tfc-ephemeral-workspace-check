@@ -50,6 +50,11 @@ func mustGetEnvVar(varName string) string {
 }
 
 func init() {
+	log.SetFormatter(&log.TextFormatter{
+		ForceColors:   true,
+		FullTimestamp: false,
+	})
+
 	// initialise config with defaults
 	config = defaultConfig
 
