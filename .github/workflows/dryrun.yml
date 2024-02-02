@@ -20,6 +20,8 @@ jobs:
         go-version: '1.21'
 
     - name: Run
+      env:
+        TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
       run:
         cd ./script ;
         go run . --config config.hcl
