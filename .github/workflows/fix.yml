@@ -1,11 +1,7 @@
-name: Dry Run
+name: Fix Non-Compliant Workspaces
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0/12 * * *'
-  push:
-    branches: [ "main" ]
 
 jobs:
 
@@ -24,4 +20,5 @@ jobs:
         TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
       run:
         cd ./script ;
-        go run . --config config.hcl
+        go run . --config config-nondryrun.hcl
+
