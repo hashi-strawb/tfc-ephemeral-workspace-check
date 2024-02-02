@@ -18,14 +18,26 @@ var (
 type Config struct {
 	TFEToken          string
 	TFEOrg            string   `hcl:"tfe_org"`
-	IgnoredWorkspaces []string `hcl:"ignored_workspaces"`
-	IgnoredProjects   []string `hcl:"ignored_projects"`
+	IgnoredWorkspaces []string `hcl:"ignored_workspaces,optional"`
+	IgnoredProjects   []string `hcl:"ignored_projects,optional"`
 
-	DefaultTTL            string `hcl:"default_ttl"`
+	DefaultTTL            string `hcl:"default_ttl,optional"`
 	defaultTTLDuration    time.Duration
 	defaultTTLHoursOrDays string
-	MaxTTL                string `hcl:"max_ttl"`
+	MaxTTL                string `hcl:"max_ttl,optional"`
 	maxTTLDuration        time.Duration
+
+	dryRun bool `hcl:"dry_run,optional"`
+	// logFormat string `hcl:"log_format"`
+	logLevel string `hcl:"log_level,optional"`
+}
+
+var defaultConfig = Config{
+	DefaultTTL: "24h",
+	MaxTTL:     "168h",
+
+	dryRun:   true,
+	logLevel: "warn",
 }
 
 func mustGetEnvVar(varName string) string {
@@ -37,20 +49,23 @@ func mustGetEnvVar(varName string) string {
 }
 
 func init() {
+	// initialise config with defaults
+	config = defaultConfig
+
 	// TODO: flag to specify config file
 
-	// TODO: flag to specify debug level
-	// log.SetLevel(log.DebugLevel)
-
-	// TODO: optional config for this
-	// log.SetFormatter(&log.JSONFormatter{})
-	// log.SetLevel(log.DebugLevel)
-
 	config.TFEToken = mustGetEnvVar("TFE_TOKEN")
+
 	err := hclsimple.DecodeFile("config.hcl", nil, &config)
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
+
+	level, err := log.ParseLevel(config.logLevel)
+	if err != nil {
+		level = log.InfoLevel
+	}
+	log.SetLevel(level)
 
 	// Validate that TFE Org is set to a non-empty string
 	if config.TFEOrg == "" {

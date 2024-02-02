@@ -5,7 +5,7 @@ Checks workspaces in a TFC org to validate that they have Auto Destroy configure
 ## Script
 
 The `script` is written in Go, and requires a config file similar to the one in
-`config.hcl`. All fields in that example are mandatory, but the `ignored_*` lists can be empty (`[]`).
+`config.hcl`. Only `tfe_org` is mandatory.
 
 You also need a TFE_TOKEN environment variable set.
 
