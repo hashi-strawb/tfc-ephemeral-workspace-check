@@ -86,7 +86,7 @@ func init() {
 		log.Fatalf("Failed to parse max_ttl: %v", err)
 	}
 
-	// TOOD: check defaultTTL <= maxTTL
+	// TODO: check defaultTTL <= maxTTL
 
 	config.defaultTTLHoursOrDays = roundDurationToHoursOrDays(config.defaultTTLDuration)
 
