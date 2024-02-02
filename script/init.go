@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"time"
@@ -27,17 +28,17 @@ type Config struct {
 	MaxTTL                string `hcl:"max_ttl,optional"`
 	maxTTLDuration        time.Duration
 
-	dryRun bool `hcl:"dry_run,optional"`
+	DryRun bool `hcl:"dry_run,optional"`
 	// logFormat string `hcl:"log_format"`
-	logLevel string `hcl:"log_level,optional"`
+	LogLevel string `hcl:"log_level,optional"`
 }
 
 var defaultConfig = Config{
 	DefaultTTL: "24h",
 	MaxTTL:     "168h",
 
-	dryRun:   true,
-	logLevel: "warn",
+	DryRun:   true,
+	LogLevel: "info",
 }
 
 func mustGetEnvVar(varName string) string {
@@ -52,16 +53,19 @@ func init() {
 	// initialise config with defaults
 	config = defaultConfig
 
-	// TODO: flag to specify config file
+	// load config from file... but which one?
+	var configFile string
+	flag.StringVar(&configFile, "config", "config.hcl", "config file to load")
+	flag.Parse()
 
 	config.TFEToken = mustGetEnvVar("TFE_TOKEN")
 
-	err := hclsimple.DecodeFile("config.hcl", nil, &config)
+	err := hclsimple.DecodeFile(configFile, nil, &config)
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	level, err := log.ParseLevel(config.logLevel)
+	level, err := log.ParseLevel(config.LogLevel)
 	if err != nil {
 		level = log.InfoLevel
 	}
@@ -85,7 +89,6 @@ func init() {
 	// TOOD: check defaultTTL <= maxTTL
 
 	config.defaultTTLHoursOrDays = roundDurationToHoursOrDays(config.defaultTTLDuration)
-	log.Debugf("Using default TTL: %s, or %s for the TFC API", config.defaultTTLDuration, config.defaultTTLHoursOrDays)
 
 	client, err = tfe.NewClient(&tfe.Config{
 		Token:             config.TFEToken,

@@ -15,4 +15,5 @@ ignored_projects = [
 default_ttl = "72h"  # 3 days
 max_ttl     = "168h" # 7 days
 
-log_level = "debug"
+log_level = "info"
+dry_run   = false

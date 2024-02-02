@@ -12,7 +12,7 @@ You also need a TFE_TOKEN environment variable set.
 The easiest way to run this is with HCP Vault Secrets:
 
 ```
-vlt run -c "go run ."
+vlt run -c "go run . --config config.hcl"
 ```
 
 (you first need to configure HCP Vault secrets, as below)
@@ -31,12 +31,8 @@ INFO[0002] Compliant! (fixed time set)                   auto-destroy-activity-d
 
 * [X] Set a compliance TTL (workspace must auto-destroy after X duration)
 * [X] Automatically set a default TTL on non-compliant workspaces
-    * [ ] Optionally skip this with a `--dry-run` argument
+    * [X] Optionally skip this with a `--dry-run` argument
 * [ ] A whole bunch of refactoring would be nice
-
-
-Stretch Goal:
-* [ ] Notify Slack when script finds non-compliant workspaces
 
 ## HCP Vault Secrets Setup
 
