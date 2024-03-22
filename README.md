@@ -2,10 +2,58 @@
 
 Checks workspaces in a TFC org to validate that they have Auto Destroy configured
 
+## Use as a GitHub Action
+
+For your repo, you only need a config file and a github workflow file.
+
+For the config file, something like this: `dryrun.hcl`:
+
+```
+tfe_org = "hashi_strawb_testing"
+
+ignored_workspaces = [
+  "ws-g8SALRtooyGs6JKH", # My bootstrap workspace for this script
+]
+
+ignored_projects = [
+  "prj-5ZkQWUDRZFAUzn9Q", # Terraform Cloud Demo
+]
+
+default_ttl = "72h"  # 3 days
+max_ttl     = "168h" # 7 days
+
+log_level = "debug"
+```
+
+For the GitHub Actions file, something like this: `.github/workflows/`:
+
+```
+name: Dry Run
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0/12 * * *'
+  push:
+    branches: [ "main" ]
+
+jobs:
+
+  run:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - id: dryrun
+      uses: hashi-strawb/tfc-ephemeral-workspace-check@v0.1.0
+      with:
+        tfe-token: ${{ secrets.TFE_TOKEN }}
+        config: dryrun.hcl
+```
+
+
 ## Script
 
-The `script` is written in Go, and requires a config file similar to the one in
-`config.hcl`. Only `tfe_org` is mandatory.
+The script is written in Go, and requires a config file similar to the one mentioned above. Only `tfe_org` is mandatory.
 
 You also need a TFE_TOKEN environment variable set.
 
@@ -14,9 +62,6 @@ The easiest way to run this is with HCP Vault Secrets:
 ```
 vlt run -c "go run . --config config.hcl"
 ```
-
-(you first need to configure HCP Vault secrets, as below)
-
 You should get an output similar to this:
 
 ```
@@ -33,17 +78,3 @@ INFO[0002] Compliant! (fixed time set)                   auto-destroy-activity-d
 * [X] Automatically set a default TTL on non-compliant workspaces
     * [X] Optionally skip this with a `--dry-run` argument
 * [ ] A whole bunch of refactoring would be nice
-
-## HCP Vault Secrets Setup
-
-In `terraform`, there is example config to create a TFC team with sufficient
-permission to access workspaces.
-
-TF will also create an API token for this team, and store it in a new HCP Vault
-Secrets application.
-
-Once this is set up, you can initialise HCP Vault Secrets in the `script` dir with:
-
-```
-vlt config init --local
-```
