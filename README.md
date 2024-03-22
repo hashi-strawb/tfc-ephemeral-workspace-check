@@ -50,6 +50,7 @@ jobs:
         config: dryrun.hcl
 ```
 
+See examples in https://github.com/hashi-strawb/tfc-org-management
 
 ## Script
 
