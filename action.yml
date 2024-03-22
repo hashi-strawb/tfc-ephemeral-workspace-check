@@ -19,12 +19,12 @@ runs:
     uses: actions/setup-go@v5
     with:
       go-version: '1.21'
-      cache-dependency-path: "${{ github.action_path }}/script"
+      cache-dependency-path: "${{ github.action_path }}/go.sum"
 
   - name: Run
     shell: bash
     env:
       TFE_TOKEN: ${{ inputs.tfe-token }}
     run:
-      cd ${{ github.action_path }}/script &&
+      cd ${{ github.action_path }} &&
       go run . --config ${{ github.workspace }}/${{ inputs.config }}
