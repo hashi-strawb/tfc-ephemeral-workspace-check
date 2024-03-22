@@ -2,13 +2,13 @@ name: Test Action
 description: Testing Actions
 
 inputs:
-  config:
-    description: 'The path to the config file'
-    required: true
-    default: 'config.hcl'
-  TFE_TOKEN:
+  tfe-token:
     description: 'The token for interacting with TFC'
     required: true
+#  config:
+#    description: 'The path to the config file'
+#    required: true
+#    default: 'config.hcl'
 #  future: need to specify TFC URL, to allow for eu TFC
 
 runs:
@@ -23,7 +23,7 @@ runs:
   - name: Run
     shell: bash
     env:
-      TFE_TOKEN: ${{ inputs.TFE_TOKEN }}      
+      TFE_TOKEN: ${{ inputs.tfe-token }}
     run:
       cd ${{ github.action_path }}/script &&
       go run . --config config.hcl
