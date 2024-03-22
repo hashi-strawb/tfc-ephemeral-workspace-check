@@ -20,6 +20,11 @@ runs:
     with:
       go-version: '1.21'
 
+  - name: This is what we would run
+    shell: bash
+    run:
+      echo go run $GITHUB_ACTION_PATH/script --config $GITHUB_ACTION_PATH/script/config.hcl
+
   - name: Run
     shell: bash
     run:
