@@ -23,9 +23,9 @@ runs:
   - name: This is what we would run
     shell: bash
     run:
-      echo go run ${{ env.GITHUB_ACTION_PATH }}/script --config ${{ env.GITHUB_ACTION_PATH }}/script/config.hcl
+      echo go run ${{ github.action_path }}/script --config ${{ github.action_path }}/script/config.hcl
 
   - name: Run
     shell: bash
     run:
-      go run ${{ env.GITHUB_ACTION_PATH }}/script --config ${{ env.GITHUB_ACTION_PATH }}/script/config.hcl
+      go run ${{ github.action_path }}/script --config ${{ github.action_path }}/script/config.hcl
