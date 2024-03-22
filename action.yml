@@ -20,10 +20,12 @@ runs:
     with:
       go-version: '1.21'
 
-  - name: This is what we would run
+  - name: What's in the directory?
     shell: bash
     run:
-      echo go run ${{ github.action_path }}/script --config ${{ github.action_path }}/script/config.hcl
+      ls -lah ${{ github.action_path }} ;
+      echo ;
+      ls -lah ${{ github.action_path }}/script ;
 
   - name: Run
     shell: bash
