@@ -13,4 +13,6 @@ runs:
       echo ;
       pwd ;
       echo ;
-      ls -lah
+      ls -lah;
+      echo ;
+      ls -lah $GITHUB_ACTION_PATH
