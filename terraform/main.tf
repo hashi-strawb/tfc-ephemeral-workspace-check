@@ -91,7 +91,7 @@ resource "hcp_project_iam_binding" "example" {
   principal_id = hcp_service_principal.sp.resource_id
   role         = "roles/viewer"
 }
-*.
+*/
 
 
 #
