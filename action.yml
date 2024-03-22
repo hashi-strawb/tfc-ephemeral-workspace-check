@@ -5,10 +5,10 @@ inputs:
   tfe-token:
     description: 'The token for interacting with TFC'
     required: true
-#  config:
-#    description: 'The path to the config file'
-#    required: true
-#    default: 'config.hcl'
+  config:
+    description: 'The path to the config file'
+    required: true
+    default: 'config.hcl'
 #  future: need to specify TFC URL, to allow for eu TFC
 
 runs:
@@ -27,4 +27,4 @@ runs:
       TFE_TOKEN: ${{ inputs.tfe-token }}
     run:
       cd ${{ github.action_path }}/script &&
-      go run . --config config.hcl
+      go run . --config ${{ github.workspace }}/${{ inputs.config }}
