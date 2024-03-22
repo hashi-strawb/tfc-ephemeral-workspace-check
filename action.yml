@@ -1,5 +1,5 @@
-name: Test Action
-description: Testing Actions
+name: TFC Ephemeral Workspace Checker
+description: Checks if your TFC Workspaces have an auto-destroy configuration enabled or not (and optionally fixes them)
 
 inputs:
   tfe-token:
